@@ -79,7 +79,10 @@
  '(("#\\(\\sw*\\)" (("#emacs" "#is" "#cool") :exit-function malk-just-one-space))
    ("file:\\(\\(?:\\sw\\|\\s_\\|~\\)*\\)" (malk-complete-file-name))
    ("" (("#" "file:"))))
- #'message
+ (lambda (str)
+   (save-excursion
+     (animate-string str 10)))
+
  :initial-message
  "You can insert any amount of \"#emacs\", \"#is\", \"#cool\", or \"file:~/Documents\".
 Keep pressing TAB for completion. Press RET to submit\n")
