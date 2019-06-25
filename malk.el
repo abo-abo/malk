@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;;
+;; Now with vitamin R.
 
 ;;; Code:
 (require 'orly)
@@ -28,7 +28,7 @@
 (defvar-local malk-rules nil)
 (defvar-local malk-action nil)
 
-(defun malk-exit-function (string status)
+(defun malk-just-one-space (string status)
   (just-one-space))
 
 (defun malk-complete-file-name (&rest _)
@@ -37,14 +37,19 @@
 (defun malk-completion-at-point ()
   (catch 'result
     (dolist (rule malk-rules)
-      (when (looking-back (car rule) (line-beginning-position))
-        (throw 'result
-          (if (functionp (cadr rule))
-              (funcall (cadr rule))
-            (list (match-beginning 0)
+      (let ((rule-regex (car rule))
+            (rule-body (cadr rule)))
+        (when (looking-back rule-regex (line-beginning-position))
+          (throw 'result
+            (let ((collection (car rule-body)))
+              (if (functionp collection)
+                  (funcall collection)
+                (append
+                 (list
+                  (match-beginning 0)
                   (match-end 0)
-                  (all-completions (match-string 0) (cadr rule))
-                  :exit-function #'malk-exit-function)))))))
+                  (all-completions (match-string 0) collection))
+                 (cdr rule-body))))))))))
 
 (defun malk-done ()
   (interactive)
@@ -71,12 +76,13 @@
     (setq malk-action action)))
 
 (malk-completing-read
- '(("#\\(\\sw*\\)" ("#emacs" "#is" "#cool"))
-   ("file:\\(\\(?:\\sw\\|\\s_\\|~\\)*\\)" malk-complete-file-name))
+ '(("#\\(\\sw*\\)" (("#emacs" "#is" "#cool") :exit-function malk-just-one-space))
+   ("file:\\(\\(?:\\sw\\|\\s_\\|~\\)*\\)" (malk-complete-file-name))
+   ("" (("#" "file:"))))
  #'message
  :initial-message
  "You can insert any amount of \"#emacs\", \"#is\", \"#cool\", or \"file:~/Documents\".
-Enter \"#\" or \"file:PATH\" and press TAB for completion. Press RET to submit\n")
+Keep pressing TAB for completion. Press RET to submit\n")
 
 (provide 'malk)
 ;;; malk.el ends here
