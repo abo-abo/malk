@@ -21,6 +21,7 @@
 ;;; Commentary:
 
 ;; Now with vitamin R.
+;; This package is a simple demo of `completion-at-point-functions'.
 
 ;;; Code:
 (require 'orly)
