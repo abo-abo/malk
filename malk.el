@@ -48,7 +48,10 @@
 
 (defun malk-done ()
   (interactive)
-  (funcall malk-action (buffer-string)))
+  (funcall malk-action
+           (buffer-substring-no-properties
+            (line-beginning-position)
+            (line-end-position))))
 
 (define-derived-mode malk-mode fundamental-mode "multi-complete"
   "A special mode for completing multiple fields."
@@ -57,17 +60,23 @@
 (define-key malk-mode-map (kbd "TAB") 'complete-symbol)
 (define-key malk-mode-map (kbd "C-m") 'malk-done)
 
-(defun malk-completing-read (rules action)
+(cl-defun malk-completing-read (rules action &keys initial-message)
   (let ((buf (get-buffer-create "*multi-complete*")))
     (pop-to-buffer buf)
+    (erase-buffer)
     (malk-mode)
+    (when initial-message
+      (insert initial-message))
     (setq malk-rules rules)
     (setq malk-action action)))
 
 (malk-completing-read
  '(("#\\(\\sw*\\)" ("#emacs" "#is" "#cool"))
    ("file:\\(\\(?:\\sw\\|\\s_\\|~\\)*\\)" malk-complete-file-name))
- #'message)
+ #'message
+ :initial-message
+ "You can insert any amount of \"#emacs\", \"#is\", \"#cool\", or \"file:~/Documents\".
+Enter \"#\" or \"file:PATH\" and press TAB for completion. Press RET to submit\n")
 
 (provide 'malk)
 ;;; malk.el ends here
